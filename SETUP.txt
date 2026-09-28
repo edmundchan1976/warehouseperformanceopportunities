@@ -1,0 +1,25 @@
+Warehouse Opportunity Finder: setup
+
+1. Create the database
+   - Go to sheets.google.com, then File > Import > Upload "Opportunity Finder Database.xlsx".
+     Choose "Replace spreadsheet". Keep the tab names (Opportunities, Technologies, ABC example).
+   - Click Share. Under General access choose "Anyone with the link" with role Viewer.
+     (The website needs this to read the data. Viewers can't change anything.)
+   - Add each person who maintains the data as an Editor. They log in with their
+     Google account email and password. Anyone without a Google account can create
+     one at accounts.google.com using their existing work email.
+
+2. Connect the website
+   - Copy the sheet ID from its address: docs.google.com/spreadsheets/d/<SHEET ID>/edit
+   - Open config.js in a text editor and paste it between the quotes: sheetId: "<SHEET ID>"
+
+3. Publish the website (free)
+   - Go to app.netlify.com/drop and drag this whole folder onto the page.
+   - Netlify gives you a public link. Sign up (free) to keep it and pick a name.
+   - To update the site files later, drag the folder onto the same site's Deploys page.
+
+Editing
+   - Editors change the Google Sheet directly. Changes appear on the website on the next
+     page refresh (Google can take a minute or two).
+   - The "How to edit" tab in the sheet explains the columns.
+   - data-snapshot.js is a saved copy used only if the sheet can't be reached.
