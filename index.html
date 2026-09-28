@@ -5,6 +5,7 @@
 <title>Warehouse Opportunity Finder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.48.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
@@ -116,7 +117,12 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--ink);margin:0;text
 .item{border-bottom:1px solid var(--rule)}
 .row{width:100%;background:none;border:none;text-align:left;cursor:pointer}
 .row:hover{background:var(--panel)}
-.title{display:grid;gap:3px;min-width:0}
+.title{display:flex;gap:14px;align-items:flex-start;min-width:0}
+.ic{width:42px;height:42px;display:grid;place-items:center;background:var(--tint);color:var(--blue);font-size:23px;flex:none}
+.item.open .ic,.row:hover .ic{background:var(--navy);color:#fff}
+.tt{display:grid;gap:3px;min-width:0}
+.newtag{background:#FFF2CC;color:#6B4E00;padding:1px 6px;margin-left:8px;letter-spacing:.08em}
+.newtag.exp{background:#E6EAF0;color:#051C2C}
 .title strong{font-family:var(--serif);font-weight:500;font-size:18px;line-height:1.25;color:var(--navy)}
 .pill{justify-self:start;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
 .pill::before{content:"";width:8px;height:8px;background:currentColor}
@@ -382,14 +388,15 @@ function renderList(){
   }[S.sort];
   rows.sort(by);
   const tc = TYPES.map(t => [t.name, rows.filter(o=>o.type===t.k).length]).filter(x=>x[1]).map(x=>`${x[1]} ${x[0].toLowerCase()}`).join(', ');
-  $('summary').textContent = rows.length ? `${rows.length} of ${OPPS.length} shown${tc?': '+tc:''}` : 'No matches';
+  const nNew = rows.filter(o=>o.isNew).length;
+  $('summary').textContent = rows.length ? `${rows.length} of ${OPPS.length} shown${tc?': '+tc:''}${nNew?` · ${nNew} new, awaiting review`:''}` : 'No matches';
   const sel = S.procs.size ? PROC.filter(p=>S.procs.has(p.k)).map(p=>p.name.toLowerCase()).join(', ').replace(/, ([^,]*)$/,' and $1') : '';
   $('s3').textContent = rows.length ? `${rows.length} opportunit${rows.length===1?'y':'ies'}${sel?' for '+sel:''}, ranked by ${{win:'quick-win potential',benefit:'benefit',effort:'lowest effort',az:'name'}[S.sort]}` : 'No opportunities match these filters';
   $('list').innerHTML = rows.length ? rows.map(o => {
     const open = S.open.has(o.id);
     return `<div class="item${open?' open':''}" data-id="${o.id}">
       <button type="button" class="row" aria-expanded="${open}">
-        <span class="title"><span class="pill ${o.type}">${TYPES.find(t=>t.k===o.type).name}</span><strong>${esc(o.title)}</strong></span>
+        <span class="title"><span class="ic" aria-hidden="true"><i class="ti ti-${o.icon}"></i></span><span class="tt"><span class="pill ${o.type}">${TYPES.find(t=>t.k===o.type).name}${o.isNew?'<span class="newtag">New</span>':''}${o.isExp?'<span class="newtag exp">Exploratory</span>':''}</span><strong>${esc(o.title)}</strong></span></span>
         ${lanes(o.procs)}
         <span class="mx"><span>${meter(o.effort,o.effortLabel+' effort')}</span><span>${meter(o.benefit,o.benefitLabel+' benefit')}</span></span>
         <span class="ntech">${o.techs.length||'–'}</span>
@@ -494,7 +501,9 @@ function build(oppRows, techRows, abcRows){
     const o = {id, type, title, effortLabel:eff, benefitLabel:ben, effort:LVMAP[eff], benefit:LVMAP[ben],
       procs: [['R','receiving'],['S','storage & picking'],['C','consolidation & packing'],['D','shipping']].filter(([k,h]) => yes(r[h])).map(([k]) => k),
       desc: col(r,'description'), benefits: col(r,'benefits (one per line)','benefits').split(/\n|;\s*/).map(x => x.replace(/^[-•*]\s*/,'').trim()).filter(Boolean),
-      img: imgUrl(col(r,'image url','image')), techs: techs[id] || []};
+      img: imgUrl(col(r,'image url','image')), techs: techs[id] || [],
+      icon: /^[a-z0-9-]+$/.test(col(r,'icon').trim().toLowerCase()) ? col(r,'icon').trim().toLowerCase() : ({process:'adjustments', digital:'device-desktop', automation:'robot'})[type],
+      isNew: /^new/i.test(col(r,'review status')), isExp: /^explor/i.test(col(r,'review status'))};
     if (id === 'p-abc' && pareto.length) o.pareto = pareto;
     o._t = text(o); return o;
   }).filter(Boolean);
