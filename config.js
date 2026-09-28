@@ -6,7 +6,7 @@ window.WOF_CONFIG = {
 
   // Web app URL of the focus-list email relay (see SETUP.txt, step 4).
   // Looks like https://script.google.com/macros/s/.../exec
-  enquiryUrl: "https://script.google.com/macros/s/AKfycbwhRC2I1z5caScAcBVvh6d1x65xb94uSCeC5Rr0u62zApL8KHdskGipHkKlg4XmHheVkQ/exec",
+  enquiryUrl: "https://script.google.com/macros/s/AKfycbwpFU1LFkBMP0ZG-cJ6qDVJcYaAHvvSgVmC7RY_VK0hw79CcH3arsqfiVL54INBfRos3Q/exec",
 
   // Where focus lists are sent. Also set TO in the relay script to match.
   enquiryTo: "Help-COI-SCM@rp.edu.sg"
