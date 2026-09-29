@@ -181,12 +181,8 @@ footer{margin-top:44px;padding-top:14px;border-top:1px solid var(--rule);color:v
 .fbtn span{width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--blue);font-size:18px}
 .fbtn:hover span{background:var(--tint)}
 .fbtn[aria-pressed="true"] span{background:var(--blue);color:#fff;border-color:var(--blue)}
-.fbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--navy);color:#fff;padding:12px max(20px,calc((100% - 1180px)/2 + 20px));padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.fbar span{font-size:14.5px}
-.fbar b{font-family:var(--serif);font-weight:400;font-size:20px;margin-right:6px}
-.fbar a{background:#fff;color:var(--navy);text-decoration:none;font-weight:700;font-size:14px;padding:9px 16px}
-.fbar a:hover{background:var(--tint)}
-body.has-focus{padding-bottom:72px}
+.fcount{font-size:14.5px;color:var(--muted);margin-bottom:10px}
+.fcount b{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--navy);margin-right:8px;vertical-align:-3px}
 .enq{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:start}
 .flist{border-top:3px solid var(--navy)}
 .flist .fi{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--rule)}
@@ -334,6 +330,7 @@ body.has-focus{padding-bottom:72px}
     <div class="ex-h"><div class="ex-no">Exhibit 4</div><h2 id="s4">Send your focus list to our team</h2><p>Add opportunities with the + button in Exhibit 3, then send them with your details. Our team will get back to you to discuss next steps.</p></div>
     <div class="enq">
       <div>
+        <div class="fcount" id="fcount"></div>
         <div class="flist" id="flist"></div>
         <button class="linkbtn" type="button" id="fclear" hidden>Clear focus list</button>
       </div>
@@ -354,7 +351,6 @@ body.has-focus{padding-bottom:72px}
 
   <footer>Process codes: R receiving, S storage and picking, C consolidation and packing, D shipping and dispatch. Legend: <span class="legend" id="legend" style="display:inline-flex;vertical-align:middle"></span></footer>
 </div>
-<div class="fbar" id="fbar" hidden><span><b id="fbarN">0</b><span id="fbarT">opportunities in your focus list</span></span><a href="#enquire">Review and send</a></div>
 
 <script src="config.js"></script>
 <script src="data-snapshot.js"></script>
@@ -678,8 +674,8 @@ function toggleFocus(id){
 }
 function renderFocus(){
   const items = focusItems(), n = items.length;
-  $('fbar').hidden = !n; document.body.classList.toggle('has-focus', !!n);
-  $('fbarN').textContent = n; $('fbarT').textContent = n===1 ? 'opportunity in your focus list' : 'opportunities in your focus list';
+  $('fcount').innerHTML = `<b>${n}</b>${n===1 ? 'opportunity' : 'opportunities'} in your focus list`;
+  $('s4').textContent = n ? `Send your ${n} selected opportunit${n===1?'y':'ies'} to our team` : 'Send your focus list to our team';
   $('fclear').hidden = !n;
   $('flist').innerHTML = n ? items.map(o => `<div class="fi"><span class="ic" aria-hidden="true"><i class="ti ti-${o.icon}"></i></span><span class="ft"><b>${esc(o.title)}</b><small>${TYPES.find(t=>t.k===o.type).name} · Effort ${esc(o.effortLabel.replace(' to ','–'))} · Benefit ${esc(o.benefitLabel.replace(' to ','–'))}</small></span><button type="button" class="rm" data-rm="${o.id}" aria-label="Remove ${esc(o.title)}" title="Remove">✕</button></div>`).join('')
     : '<div class="none">Your focus list is empty. Use the + button beside an opportunity in Exhibit 3 to add it.</div>';
