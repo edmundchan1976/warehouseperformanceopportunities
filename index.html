@@ -230,6 +230,15 @@ footer{margin-top:44px;padding-top:14px;border-top:1px solid var(--rule);color:v
 .lever.l4{background:var(--navy);color:#fff}
 .lever[aria-pressed="true"]{box-shadow:inset 0 -6px 0 var(--cyan)}
 .lever[aria-pressed="true"] .ct::after{content:"Selected";font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;background:var(--cyan);color:var(--navy)}
+
+.consent-bar{position:fixed;left:16px;right:16px;bottom:16px;z-index:40;max-width:720px;margin:0 auto;background:#fff;border:1px solid var(--rule);border-top:3px solid var(--navy);box-shadow:0 12px 32px rgba(5,28,44,.18);padding:16px 18px;display:grid;gap:12px;font-size:13.5px;line-height:1.5;color:var(--text)}
+.consent-bar b{font-family:var(--serif);font-weight:400;font-size:18px;color:var(--navy)}
+.consent-bar .acts{display:flex;gap:10px;flex-wrap:wrap}
+.consent-bar button{font:inherit;font-size:14px;font-weight:700;padding:9px 16px;cursor:pointer;border:1px solid var(--navy)}
+.consent-bar .yes{background:var(--blue);border-color:var(--blue);color:#fff}
+.consent-bar .no{background:#fff;color:var(--navy)}
+.privacy-link{background:none;border:0;padding:0;color:var(--blue);font:inherit;font-size:12px;cursor:pointer;text-decoration:underline}
+
 @media (max-width:900px){.levers{grid-template-columns:repeat(2,minmax(0,1fr))}.lever{min-height:220px}}
 @media (max-width:420px){.levers{grid-template-columns:minmax(0,1fr)}.lever{min-height:0}}
 
@@ -349,7 +358,8 @@ footer{margin-top:44px;padding-top:14px;border-top:1px solid var(--rule);color:v
     </div>
   </section>
 
-  <footer>Process codes: R receiving, S storage and picking, C consolidation and packing, D shipping and dispatch. Legend: <span class="legend" id="legend" style="display:inline-flex;vertical-align:middle"></span></footer>
+  <footer>Process codes: R receiving, S storage and picking, C consolidation and packing, D shipping and dispatch. Legend: <span class="legend" id="legend" style="display:inline-flex;vertical-align:middle"></span><br><button type="button" class="privacy-link" id="privacyLink" hidden>Privacy and cookie settings</button></footer>
+  <div class="consent-bar" id="consentBar" role="dialog" aria-labelledby="consentTitle" hidden><b id="consentTitle">Help us improve this site</b><span id="consentText">With your permission, we use Google Analytics and Microsoft Clarity to see how visitors use this site: sections viewed, filters and opportunities chosen, device, approximate location, and anonymised recordings of clicks and scrolling. Text you type into the form is masked, and your name and email are never sent to these tools.</span><span class="acts"><button type="button" class="yes" id="consentYes">Accept analytics</button><button type="button" class="no" id="consentNo">Decline</button></span></div>
 </div>
 
 <script src="config.js"></script>
@@ -709,13 +719,86 @@ $('eform').addEventListener('submit', async e => {
   try {
     const res = await fetch(url, { method:'POST', body: JSON.stringify(d) });
     const r = await res.json();
+    track('focus_list_submit', {items_count: items.length, result: r.ok ? 'sent' : (r.error || 'error')});
     if (r.ok) { showStatus('ok', `Sent. Our team will reply to <b>${esc(d.email)}</b>.`); $('en-msg').value = ''; }
     else if (r.error === 'rate') showStatus('bad', 'You’ve just sent a list. Wait a minute before sending again.');
     else showStatus('bad', `Your list couldn’t be sent. ${fallback}`);
   } catch (x) {
+    track('focus_list_submit', {items_count: items.length, result: 'network_error'});
     showStatus('bad', `Your list couldn’t be sent. Check your connection and try again, or ${link('send it from your email app')} instead.`);
   } finally { btn.disabled = false; btn.textContent = 'Send focus list'; }
 });
+
+// ---------- analytics (Google Analytics 4 + Microsoft Clarity), only after consent ----------
+const ACFG = window.WOF_CONFIG || {};
+const GA_ID = (ACFG.gaMeasurementId || '').trim(), CLARITY_ID = (ACFG.clarityProjectId || '').trim();
+let analyticsOn = false, observed = false;
+function track(name, params){
+  if (!analyticsOn) return;
+  try { if (window.gtag) gtag('event', name, params || {}); } catch(e){}
+  try { if (window.clarity) { clarity('event', name); Object.entries(params || {}).forEach(([k,v]) => { if (typeof v === 'string' && v) clarity('set', k, v.slice(0,100)); }); } } catch(e){}
+}
+window.wofTrack = track;
+function loadAnalytics(){
+  if (analyticsOn) return; analyticsOn = true;
+  if (GA_ID){
+    const s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA_ID); document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || []; window.gtag = function(){ dataLayer.push(arguments); };
+    gtag('js', new Date()); gtag('config', GA_ID);
+  }
+  if (CLARITY_ID){
+    (function(c,l,a,r,i,t,y){ c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)}; t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i; y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y); })(window,document,'clarity','script',CLARITY_ID);
+  }
+  observeSections();
+}
+function consentGet(){ try { return localStorage.getItem('wof-consent'); } catch(e){ return null; } }
+function consentSet(v){ try { localStorage.setItem('wof-consent', v); } catch(e){} }
+// analyticsMode "notice" (default): analytics runs unless the visitor opts out; a one-time notice tells them.
+// analyticsMode "optin": nothing loads until the visitor clicks Accept.
+const OPTIN = String(ACFG.analyticsMode || 'notice').toLowerCase() === 'optin';
+if (GA_ID || CLARITY_ID){
+  $('privacyLink').hidden = false;
+  if (!OPTIN){
+    $('consentTitle').textContent = 'How we use analytics';
+    $('consentText').textContent = 'This site uses Google Analytics and Microsoft Clarity to see how visitors use it: sections viewed, filters and opportunities chosen, device, approximate location, and anonymised recordings of clicks and scrolling. Text you type into the form is masked, and your name and email are never sent to these tools. You can opt out at any time.';
+    $('consentYes').textContent = 'OK'; $('consentNo').textContent = 'Opt out';
+  }
+  const c = consentGet();
+  if (c === 'yes' || (!OPTIN && c !== 'no')) loadAnalytics();
+  if (!c) $('consentBar').hidden = false;
+  $('consentYes').addEventListener('click', () => { consentSet('yes'); $('consentBar').hidden = true; loadAnalytics(); });
+  $('consentNo').addEventListener('click', () => { const was = analyticsOn; consentSet('no'); $('consentBar').hidden = true; if (was) location.reload(); });
+  $('privacyLink').addEventListener('click', () => {
+    const c = consentGet();
+    if (!OPTIN) { $('consentYes').textContent = c === 'no' ? 'Turn analytics back on' : 'OK'; $('consentNo').textContent = 'Opt out'; }
+    $('consentBar').hidden = false;
+  });
+}
+// section views, once each per visit
+function observeSections(){
+  if (observed || !('IntersectionObserver' in window)) return; observed = true;
+  const secs = [['levers','Four levers'],['s1','Exhibit 1: processes'],['s2','Exhibit 2: effort and benefit'],['s3','Exhibit 3: opportunities'],['s4','Exhibit 4: focus list form']];
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ track('section_view', {section: e.target.dataset.secName}); io.unobserve(e.target); } }), {threshold: .35});
+  secs.forEach(([id,name]) => { const el = $(id) && ($(id).closest('section') || $(id)); if (el){ el.dataset.secName = name; io.observe(el); } });
+}
+// interactions (capture phase: read what was clicked before the page updates)
+document.addEventListener('click', e => {
+  if (!analyticsOn) return;
+  const t = e.target, on = el => el.getAttribute('aria-pressed') !== 'true';
+  let el;
+  if ((el = t.closest('[data-lever]'))) return track('lever_select', {lever: el.querySelector('.nm').textContent, selected: on(el)});
+  if ((el = t.closest('.dock[data-p]'))) return track('process_select', {process: el.querySelector('.name').textContent, selected: on(el)});
+  if ((el = t.closest('.cell[data-e]'))) return track('matrix_select', {effort: LV[el.dataset.e], benefit: LV[el.dataset.b], selected: on(el)});
+  if ((el = t.closest('#fType .chip, #fEffort .chip, #fBenefit .chip'))) return track('filter_select', {filter: {fType:'type',fEffort:'effort',fBenefit:'benefit'}[el.parentNode.id], value: el.firstChild.textContent.trim() || el.textContent.replace(/\d+$/,'').trim(), selected: on(el)});
+  if ((el = t.closest('[data-focus]'))) { const o = OPPS.find(x => x.id === el.dataset.focus); return track(on(el) ? 'focus_add' : 'focus_remove', {opportunity_id: el.dataset.focus, opportunity_title: o ? o.title : ''}); }
+  if ((el = t.closest('[data-rm]'))) { const o = OPPS.find(x => x.id === el.dataset.rm); return track('focus_remove', {opportunity_id: el.dataset.rm, opportunity_title: o ? o.title : ''}); }
+  if ((el = t.closest('.row'))) { const it = el.closest('.item'), o = OPPS.find(x => x.id === it.dataset.id); if (o && !it.classList.contains('open')) track('opportunity_open', {opportunity_id: o.id, opportunity_title: o.title, opportunity_type: TYPES.find(x=>x.k===o.type).name}); return; }
+  if ((el = t.closest('a.tech'))) return track('technology_link', {technology: el.querySelector('.cap b')?.textContent || '', link_url: el.href});
+  if ((el = t.closest('#reset, [data-reset]'))) return track('filters_cleared', {});
+}, true);
+let searchTimer;
+$('q').addEventListener('input', e => { clearTimeout(searchTimer); const v = e.target.value.trim(); if (v.length >= 3) searchTimer = setTimeout(() => track('search', {search_term: v.slice(0,80)}), 1200); });
+$('sort').addEventListener('change', e => track('sort_change', {sort: e.target.options[e.target.selectedIndex].text}));
 
 load();
 })();
