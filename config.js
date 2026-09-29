@@ -15,7 +15,7 @@ window.WOF_CONFIG = {
   // Google Analytics 4 measurement ID, looks like G-XXXXXXXXXX
   gaMeasurementId: "G-3NK9SZ3B6C",
   // Microsoft Clarity project ID, a short code like abcd1234ef
-  clarityProjectId: "",
+  clarityProjectId: "ypooougl92",
   // "notice": analytics runs by default, visitors see a one-time notice and can opt out.
   // "optin":  nothing is tracked until a visitor clicks Accept (stricter).
   analyticsMode: "notice"
