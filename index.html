@@ -213,23 +213,6 @@ footer{margin-top:44px;padding-top:14px;border-top:1px solid var(--rule);color:v
 .estatus a{color:inherit;font-weight:700}
 .fine{font-size:12.5px;color:var(--muted);line-height:1.5}
 
-.levers-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin:36px 0 14px}
-.levers-h h2{font-size:clamp(22px,2.6vw,28px)}
-.levers-h span{font-size:13.5px;color:var(--muted)}
-.levers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.lever{position:relative;display:flex;flex-direction:column;gap:8px;text-align:left;cursor:pointer;border:0;padding:18px 18px 20px;min-height:250px;color:var(--navy);transition:transform .15s,box-shadow .15s}
-.lever:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(5,28,44,.16)}
-.lever svg{width:100%;max-width:170px;height:96px;display:block;margin-bottom:6px}
-.lever .no{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
-.lever .nm{font-family:var(--serif);font-size:25px;line-height:1.1}
-.lever .ds{font-size:13.5px;line-height:1.45;opacity:.9}
-.lever .ct{margin-top:auto;font-size:13px;font-weight:700;display:inline-flex;gap:6px;align-items:center}
-.lever.l1{background:var(--tint)}
-.lever.l2{background:var(--h2)}
-.lever.l3{background:var(--blue);color:#fff}
-.lever.l4{background:var(--navy);color:#fff}
-.lever[aria-pressed="true"]{box-shadow:inset 0 -6px 0 var(--cyan)}
-.lever[aria-pressed="true"] .ct::after{content:"Selected";font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;background:var(--cyan);color:var(--navy)}
 
 .consent-bar{position:fixed;left:16px;right:16px;bottom:16px;z-index:40;max-width:720px;margin:0 auto;background:#fff;border:1px solid var(--rule);border-top:3px solid var(--navy);box-shadow:0 12px 32px rgba(5,28,44,.18);padding:16px 18px;display:grid;gap:12px;font-size:13.5px;line-height:1.5;color:var(--text)}
 .consent-bar b{font-family:var(--serif);font-weight:400;font-size:18px;color:var(--navy)}
@@ -239,8 +222,6 @@ footer{margin-top:44px;padding-top:14px;border-top:1px solid var(--rule);color:v
 .consent-bar .no{background:#fff;color:var(--navy)}
 .privacy-link{background:none;border:0;padding:0;color:var(--blue);font:inherit;font-size:12px;cursor:pointer;text-decoration:underline}
 
-@media (max-width:900px){.levers{grid-template-columns:repeat(2,minmax(0,1fr))}.lever{min-height:220px}}
-@media (max-width:420px){.levers{grid-template-columns:minmax(0,1fr)}.lever{min-height:0}}
 
 @media (max-width:900px){.enq{grid-template-columns:minmax(0,1fr);gap:28px}}
 @media (max-width:760px){.head-wrap{display:none}.fbtn{width:48px;align-items:start;padding-top:14px}}
@@ -280,10 +261,6 @@ footer{margin-top:44px;padding-top:14px;border-top:1px solid var(--rule);color:v
       <div class="stat"><b>4</b><span>warehouse processes, from receiving to shipping</span></div>
     </div>
   </header>
-  <section aria-labelledby="lv">
-    <div class="levers-h"><h2 id="lv">Four levers for a higher-performing warehouse</h2><span>Choose a lever to see its opportunities.</span></div>
-    <div class="levers" id="levers"></div>
-  </section>
   <div class="status" id="status">Loading opportunities…</div>
 
   <section class="exhibit" aria-labelledby="s1">
@@ -512,7 +489,7 @@ function renderLegend(){
   $('legend').innerHTML = TYPES.map(t=>`<span><i class="sw" style="background:var(--t-${t.k})"></i>${t.name}</span>`).join('');
 }
 function render(){
-  renderFlow(); renderMatrix(); if (typeof renderLevers==='function') renderLevers();
+  renderFlow(); renderMatrix();
   $('stOpps').textContent = OPPS.length || '–';
   $('stTech').textContent = OPPS.length ? OPPS.reduce((a,o)=>a+o.techs.length,0) : '–';
 
@@ -641,34 +618,6 @@ async function load(){
     setStatus(''); $('source').textContent = `Opportunity database, saved copy of ${snap.savedOn}.`; render();
   } else setStatus('The opportunity data couldn’t be loaded. Refresh the page to try again.', true);
 }
-// ---------- four levers ----------
-const LEVERS = [
- {k:'process', no:'Lever 1', nm:'Improve', ds:'Lean methods, layout and standard work that lift performance with little capital.',
-  svg:`<svg viewBox="0 0 170 96" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2"><rect x="30" y="10" width="40" height="30"/><rect x="78" y="10" width="40" height="30"/><rect x="54" y="46" width="40" height="30"/></g><path d="M20 88 H150" stroke="#2251FF" stroke-width="4"/><path d="M130 58 l12 -12 l12 12" stroke="#2251FF" stroke-width="3" fill="none"/><path d="M142 46 v30" stroke="#2251FF" stroke-width="3"/></svg>`},
- {k:'digital', no:'Lever 2', nm:'Digitalise', ds:'Scanning, systems and shared data that replace paper and guesswork.',
-  svg:`<svg viewBox="0 0 170 96" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2"><rect x="24" y="6" width="104" height="66" rx="3"/><path d="M62 88 h28 M76 72 v16"/></g><path d="M36 58 l18 -18 l16 10 l24 -26 l18 10" stroke="#2251FF" stroke-width="3.5" fill="none"/><g fill="currentColor"><rect x="138" y="20" width="4" height="40"/><rect x="146" y="20" width="2" height="40"/><rect x="152" y="20" width="5" height="40"/><rect x="160" y="20" width="2" height="40"/></g></svg>`},
- {k:'automation', no:'Lever 3', nm:'Automate', ds:'Robots, automated storage, sortation and packing that scale output without scaling headcount.',
-  svg:`<svg viewBox="0 0 170 96" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2"><rect x="20" y="8" width="10" height="80"/><rect x="60" y="8" width="10" height="80"/><path d="M30 30 h30 M30 55 h30"/><rect x="92" y="54" width="56" height="24" rx="5"/><circle cx="104" cy="84" r="5"/><circle cx="136" cy="84" r="5"/><path d="M120 54 v-16 M110 38 h20"/></g><rect x="35" y="36" width="20" height="14" fill="#00E0FF"/><rect x="104" y="30" width="32" height="8" fill="#00E0FF"/></svg>`},
- {k:'orch', no:'Lever 4', nm:'Orchestrate', ds:'End-to-end visibility across partners for an agile, resilient supply chain.',
-  svg:`<svg viewBox="0 0 170 96" aria-hidden="true"><g fill="none" stroke="#00E0FF" stroke-width="2"><path d="M85 48 L30 18 M85 48 L140 18 M85 48 L30 80 M85 48 L140 80 M30 18 H140 M30 80 H140 M30 18 V80 M140 18 V80" opacity=".75"/><circle cx="30" cy="18" r="6"/><circle cx="140" cy="18" r="6"/><circle cx="30" cy="80" r="6"/><circle cx="140" cy="80" r="6"/></g><circle cx="85" cy="48" r="11" fill="#00E0FF"/><circle cx="85" cy="48" r="18" fill="none" stroke="#00E0FF" stroke-width="1.5" opacity=".5"/></svg>`}
-];
-function renderLevers(){
-  const pool = OPPS.filter(o => base(o,['t','o']));
-  $('levers').innerHTML = LEVERS.map((l,i) => {
-    const n = pool.filter(o => l.k==='orch' ? o.orch : o.type===l.k).length;
-    const on = l.k==='orch' ? S.orch : (!S.orch && S.types.size===1 && S.types.has(l.k));
-    return `<button type="button" class="lever l${i+1}" data-lever="${l.k}" aria-pressed="${on}">${l.svg}<span class="no">${l.no}</span><span class="nm">${l.nm}</span><span class="ds">${l.ds}</span><span class="ct">${OPPS.length ? n+' opportunities →' : ''}</span></button>`;
-  }).join('');
-}
-$('levers').addEventListener('click', e => {
-  const b = e.target.closest('[data-lever]'); if (!b) return;
-  const k = b.dataset.lever;
-  if (k === 'orch') { S.orch = !S.orch; S.types.clear(); }
-  else { const on = !S.orch && S.types.size===1 && S.types.has(k); S.orch = false; S.types.clear(); if (!on) S.types.add(k); }
-  render();
-  if (b.getAttribute('aria-pressed') !== 'true' && (S.orch || S.types.size)) document.getElementById('s1').closest('section').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
-});
-
 // ---------- focus list and enquiry ----------
 const TO = (window.WOF_CONFIG && window.WOF_CONFIG.enquiryTo) || 'Help-COI-SCM@rp.edu.sg';
 const FOCUS = new Set();
@@ -777,7 +726,7 @@ if (GA_ID || CLARITY_ID){
 // section views, once each per visit
 function observeSections(){
   if (observed || !('IntersectionObserver' in window)) return; observed = true;
-  const secs = [['levers','Four levers'],['s1','Exhibit 1: processes'],['s2','Exhibit 2: effort and benefit'],['s3','Exhibit 3: opportunities'],['s4','Exhibit 4: focus list form']];
+  const secs = [['s1','Exhibit 1: processes'],['s2','Exhibit 2: effort and benefit'],['s3','Exhibit 3: opportunities'],['s4','Exhibit 4: focus list form']];
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ track('section_view', {section: e.target.dataset.secName}); io.unobserve(e.target); } }), {threshold: .35});
   secs.forEach(([id,name]) => { const el = $(id) && ($(id).closest('section') || $(id)); if (el){ el.dataset.secName = name; io.observe(el); } });
 }
@@ -786,7 +735,6 @@ document.addEventListener('click', e => {
   if (!analyticsOn) return;
   const t = e.target, on = el => el.getAttribute('aria-pressed') !== 'true';
   let el;
-  if ((el = t.closest('[data-lever]'))) return track('lever_select', {lever: el.querySelector('.nm').textContent, selected: on(el)});
   if ((el = t.closest('.dock[data-p]'))) return track('process_select', {process: el.querySelector('.name').textContent, selected: on(el)});
   if ((el = t.closest('.cell[data-e]'))) return track('matrix_select', {effort: LV[el.dataset.e], benefit: LV[el.dataset.b], selected: on(el)});
   if ((el = t.closest('#fType .chip, #fEffort .chip, #fBenefit .chip'))) return track('filter_select', {filter: {fType:'type',fEffort:'effort',fBenefit:'benefit'}[el.parentNode.id], value: el.firstChild.textContent.trim() || el.textContent.replace(/\d+$/,'').trim(), selected: on(el)});
